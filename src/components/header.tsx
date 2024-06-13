@@ -8,8 +8,6 @@ export default function Header() {
       <>
         <header className='flex justify-between'>
         <Book size={42} color="#999999" />
-        <div className="mt-[8.88rem]">
-        </div>
         <div className="flex gap-4">
         <Switch />
         <Moon size={30} color="#999999"/>

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
+import { X } from "lucide-react"
 
 const FormSchema = z.object({
   input: z.string().min(2, {
@@ -23,14 +24,55 @@ const FormSchema = z.object({
   }),
 })
 
+export type Root = Root2[]
+
+export interface Root2 {
+  word: string
+  phonetic: string
+  phonetics: Phonetic[]
+  meanings: Meaning[]
+  license: License2
+  sourceUrls: string[]
+}
+
+export interface Phonetic {
+  text: string
+  audio: string
+  sourceUrl?: string
+  license?: License
+}
+
+export interface License {
+  name: string
+  url: string
+}
+
+export interface Meaning {
+  partOfSpeech: string
+  definitions: Definition[]
+  synonyms: string[]
+  antonyms: any[]
+}
+
+export interface Definition {
+  definition: string
+  synonyms: any[]
+  antonyms: any[]
+  example?: string
+}
+
+export interface License2 {
+  name: string
+  url: string
+}
+
+
 export function HeroSection() {
     const [value, setValue] = useState<any>([])
-    const [word, setWord] = useState("")
+    const [word, setWord] = useState<string[]>([])
     const [typeOfWord, setTypeOfWord] = useState("")
-    const [synonym, setSynonym] = useState("")
-    const [meanings, setMeanings] = useState("")
-    const [definition, setDefinition] = useState("")
-    const [definitions, setDefinitions] = useState("")
+    const [synonym, setSynonym] = useState<string[][][]>([])
+    const [meanings, setMeanings] = useState<string[][][]>([])
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -43,13 +85,13 @@ export function HeroSection() {
     try {
         const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${data.input}`)
         setValue(res)
-        const dataRes = await res.json()
-        setWord(dataRes[0].word)
+        const dataRes: Root = await res.json()
+        console.log(dataRes.map((x) => x.meanings.map((x)  => x.definitions.slice(0, 2).map((x) => x.definition))))
+        setWord(dataRes.map((x) => x.word))
         setTypeOfWord(dataRes[0].meanings[0].partOfSpeech)
-        setSynonym(dataRes[0].meanings[0].synonyms)
-        setMeanings(dataRes[0].meanings[0].definitions[0].definition)
-        setDefinition(dataRes[0].meanings[0].definitions[1].definition)
-        setDefinitions(dataRes[0].meanings[0].definitions[2].definition)
+        setSynonym(dataRes.map((x) => x.meanings.map((x) => x.synonyms)))
+        setMeanings(dataRes.map((x) => x.meanings.map((x)  => x.definitions.slice(0, 2).map((x) => x.definition))))
+
 
     } catch(err){
         console.log(err)
@@ -86,13 +128,12 @@ export function HeroSection() {
     <h1 className="text-4xl font-semibold text-purple-500">{word}</h1>
     <p>{typeOfWord}</p>
     <ul>
+      <h1 className="text-neutral-500">{!typeOfWord?(''):("Meanings")}</h1>
       <li><p>{meanings}</p></li>
-      <li><p>{definition}</p></li>
-      <li><p>{definitions}</p></li>
     </ul>
-    <div className="flex gap-x-1.25 gap-y-1.25">
-      <h1 className="text-neutral-500">Synonyms</h1>
-    <p className="text-purple-500 gap-1"> {synonym}</p>
+    <div>
+      <h1 className="text-neutral-500">{!typeOfWord?(''):("Synonyms")}</h1>
+    <p className="text-purple-500 gap-1">{synonym}</p>
     </div>
     </div>
     </div>
