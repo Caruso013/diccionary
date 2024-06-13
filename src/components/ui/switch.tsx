@@ -2,9 +2,14 @@
 
 import * as React from "react"
 import * as SwitchPrimitives from "@radix-ui/react-switch"
+import { useTheme } from "next-themes"
+
 
 import { cn } from "@/lib/utils"
 
+export function ModeToggle() {
+  const { theme, setTheme } = useTheme()
+}
 const Switch = React.forwardRef<
   React.ElementRef<typeof SwitchPrimitives.Root>,
   React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>

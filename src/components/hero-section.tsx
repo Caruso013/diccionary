@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
+import { symbol, z } from "zod"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -27,6 +27,10 @@ export function HeroSection() {
     const [value, setValue] = useState<any>([])
     const [word, setWord] = useState("")
     const [typeOfWord, setTypeOfWord] = useState("")
+    const [synonym, setSynonym] = useState("")
+    const [meanings, setMeanings] = useState("")
+    const [definition, setDefinition] = useState("")
+    const [definitions, setDefinitions] = useState("")
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -41,7 +45,12 @@ export function HeroSection() {
         setValue(res)
         const dataRes = await res.json()
         setWord(dataRes[0].word)
-        setTypeOfWord(dataRes[0].meanings[1].partOfSpeech)
+        setTypeOfWord(dataRes[0].meanings[0].partOfSpeech)
+        setSynonym(dataRes[0].meanings[0].synonyms)
+        setMeanings(dataRes[0].meanings[0].definitions[0].definition)
+        setDefinition(dataRes[0].meanings[0].definitions[1].definition)
+        setDefinitions(dataRes[0].meanings[0].definitions[2].definition)
+
     } catch(err){
         console.log(err)
         
@@ -73,9 +82,18 @@ export function HeroSection() {
         <Button type="submit">Buscar</Button>
       </form>
     </Form>
-    <div className="flex w-full h-full mx-44">
+    <div className="flex-col w-full h-full mx-44">
     <h1 className="text-4xl font-semibold text-purple-500">{word}</h1>
     <p>{typeOfWord}</p>
+    <ul>
+      <li><p>{meanings}</p></li>
+      <li><p>{definition}</p></li>
+      <li><p>{definitions}</p></li>
+    </ul>
+    <div className="flex gap-x-1.25 gap-y-1.25">
+      <h1 className="text-neutral-500">Synonyms</h1>
+    <p className="text-purple-500 gap-1"> {synonym}</p>
+    </div>
     </div>
     </div>
   )
