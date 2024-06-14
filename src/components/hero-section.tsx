@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
-import { X } from "lucide-react"
+import { Search } from "lucide-react"
 
 const FormSchema = z.object({
   input: z.string().min(2, {
@@ -86,10 +86,9 @@ export function HeroSection() {
         const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${data.input}`)
         setValue(res)
         const dataRes: Root = await res.json()
-        console.log(dataRes.map((x) => x.meanings.map((x)  => x.definitions.slice(0, 2).map((x) => x.definition))))
         setWord(dataRes.map((x) => x.word))
         setTypeOfWord(dataRes[0].meanings[0].partOfSpeech)
-        setSynonym(dataRes.map((x) => x.meanings.map((x) => x.synonyms)))
+        setSynonym(dataRes.map((x) => x.meanings.map((x) => x.synonyms.slice(0, 3))))
         setMeanings(dataRes.map((x) => x.meanings.map((x)  => x.definitions.slice(0, 2).map((x) => x.definition))))
 
 
@@ -121,21 +120,39 @@ export function HeroSection() {
             </FormItem>
           )}
         />
-        <Button type="submit">Buscar</Button>
+    <Button variant="outline" size="icon">
+      <Search className="h-4 w-4" />
+    </Button>
       </form>
     </Form>
     <div className="flex-col w-full h-full mx-44">
-    <h1 className="text-4xl font-semibold text-purple-500">{word}</h1>
+    <h1 className="text-4xl font-semibold text-black-500 mt-[-2.875rem]">{word}</h1>
     <p>{typeOfWord}</p>
     <ul>
-      <h1 className="text-neutral-500">{!typeOfWord?(''):("Meanings")}</h1>
-      <li><p>{meanings}</p></li>
-    </ul>
-    <div>
-      <h1 className="text-neutral-500">{!typeOfWord?(''):("Synonyms")}</h1>
-    <p className="text-purple-500 gap-1">{synonym}</p>
+    <h1 className="text-neutral-500">{!typeOfWord?(''):("Meanigs")}</h1>
+          {meanings.map((meaningGroup, index) => (
+            <li key={index}>
+              {meaningGroup.map((meaning, subIndex) => (
+                <ul key={subIndex} className="list-disc list-inside">
+                  {meaning.map((definition, defIndex) => (
+                    <li key={defIndex}>{definition}</li>
+                  ))}
+                </ul>
+              ))}
+            </li>
+          ))}
+        </ul>
+    <div className="flex gap-4 flex-wrap">
+    <h1 className="text-neutral-500  " >{!typeOfWord?(''):("Synonyms")}</h1>
+          {synonym.map((synGroup, index) => (
+            <div key={index} className="flex gap-4 flex-wrap">
+              {synGroup.flat().map((syn, synIndex) => (
+                <span key={synIndex} className="text-purple-500">{syn}</span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
-    </div>
-    </div>
-  )
+  );
 }
