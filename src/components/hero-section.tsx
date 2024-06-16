@@ -1,156 +1,181 @@
-"use client"
+"use client";
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { symbol, z } from "zod"
-
-import { Button } from "@/components/ui/button"
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { useState } from "react"
-import { Search } from "lucide-react"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Search } from "lucide-react";
+import { useState } from "react";
 
 const FormSchema = z.object({
   input: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+    message: "The word must be at least 2 characters long.",
   }),
-})
+});
 
-export type Root = Root2[]
+export type Root = Root2[];
 
 export interface Root2 {
-  word: string
-  phonetic: string
-  phonetics: Phonetic[]
-  meanings: Meaning[]
-  license: License2
-  sourceUrls: string[]
+  word: string;
+  phonetic: string;
+  phonetics: Phonetic[];
+  meanings: Meaning[];
+  license: License2;
+  sourceUrls: string[];
 }
 
 export interface Phonetic {
-  text: string
-  audio: string
-  sourceUrl?: string
-  license?: License
+  text: string;
+  audio: string;
+  sourceUrl?: string;
+  license?: License;
 }
 
 export interface License {
-  name: string
-  url: string
+  name: string;
+  url: string;
 }
 
 export interface Meaning {
-  partOfSpeech: string
-  definitions: Definition[]
-  synonyms: string[]
-  antonyms: any[]
+  partOfSpeech: string;
+  definitions: Definition[];
+  synonyms: string[];
+  antonyms: any[];
 }
 
 export interface Definition {
-  definition: string
-  synonyms: any[]
-  antonyms: any[]
-  example?: string
+  definition: string;
+  synonyms: any[];
+  antonyms: any[];
+  example?: string;
 }
 
 export interface License2 {
-  name: string
-  url: string
+  name: string;
+  url: string;
 }
 
-
 export function HeroSection() {
-    const [value, setValue] = useState<any>([])
-    const [word, setWord] = useState<string[]>([])
-    const [typeOfWord, setTypeOfWord] = useState("")
-    const [synonym, setSynonym] = useState<string[][][]>([])
-    const [meanings, setMeanings] = useState<string[][][]>([])
+  const [word, setWord] = useState<string>("");
+  const [typeOfWord, setTypeOfWord] = useState("");
+  const [synonym, setSynonym] = useState<string[]>([]);
+  const [meanings, setMeanings] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       input: "",
     },
-  })
+  });
 
-  async function onSubmit(data: z.infer<typeof FormSchema>) {
+  const onSubmit = async (data: { input: string }) => {
     try {
-        const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${data.input}`)
-        setValue(res)
-        const dataRes: Root = await res.json()
-        setWord(dataRes.map((x) => x.word))
-        setTypeOfWord(dataRes[0].meanings[0].partOfSpeech)
-        setSynonym(dataRes.map((x) => x.meanings.map((x) => x.synonyms.slice(0, 3))))
-        setMeanings(dataRes.map((x) => x.meanings.map((x)  => x.definitions.slice(0, 2).map((x) => x.definition))))
+      const res = await fetch(
+        `https://api.dictionaryapi.dev/api/v2/entries/en/${data.input}`
+      );
 
+      if (!res.ok) {
+        throw new Error("Invalid word or search area empty");
+      }
 
-    } catch(err){
-        console.log(err)
-        
+      const dataRes: Root = await res.json();
+
+      if (!dataRes || dataRes.length === 0) {
+        setError("Invalid word or search area empty");
+        setWord("");
+        setTypeOfWord("");
+        setSynonym([]);
+        setMeanings([]);
+        return;
+      }
+
+      setError(null);
+      const uniqueWords = Array.from(new Set(dataRes.map((x) => x.word)));
+      const uniqueMeanings = Array.from(
+        new Set(
+          dataRes.flatMap((x) =>
+            x.meanings.flatMap((meaning) =>
+              meaning.definitions.slice(0, 2).map((def) => def.definition)
+            )
+          )
+        )
+      );
+      const uniqueSynonyms = Array.from(
+        new Set(
+          dataRes.flatMap((x) =>
+            x.meanings.flatMap((meaning) => meaning.synonyms.slice(0, 2))
+          )
+        )
+      );
+
+      setWord(uniqueWords.join(", "));
+      setTypeOfWord(dataRes[0].meanings[0].partOfSpeech);
+      setMeanings(uniqueMeanings);
+      setSynonym(uniqueSynonyms);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError("Invalid word or search area empty");
+      setWord("");
+      setTypeOfWord("");
+      setSynonym([]);
+      setMeanings([]);
     }
-  }
+  };
 
   return (
-    <div className="flex w-full h-full  flex-col gap-24">
-
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="w-3/3 space-y-6 flex justify-center items-center flex-col">
-        <FormField
-          control={form.control}
-          name="input"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Palavra que deseja buscar</FormLabel>
-              <FormControl>
-                <Input placeholder="Ex: Mouse" {...field} />
-              </FormControl>
-              <FormDescription>
-               Essa é a palavra que você vai buscar
-              
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-    <Button variant="outline" size="icon">
-      <Search className="h-4 w-4" />
-    </Button>
+    <div className="flex flex-col items-center min-h-screen px-4 py-12">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="relative w-full max-w-lg"
+      >
+        <div className="relative w-full">
+          <input
+            type="text"
+            placeholder="Ex: Mouse"
+            {...form.register("input")}
+            className="border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500 w-full pr-12"
+          />
+          <button
+            type="submit"
+            className="absolute inset-y-0 right-0 flex items-center pr-3"
+          >
+            <Search size={20} className="text-gray-400" />
+          </button>
+        </div>
       </form>
-    </Form>
-    <div className="flex-col w-full h-full mx-44">
-    <h1 className="text-4xl font-semibold text-black-500 mt-[-2.875rem]">{word}</h1>
-    <p>{typeOfWord}</p>
-    <ul>
-    <h1 className="text-neutral-500">{!typeOfWord?(''):("Meanigs")}</h1>
-          {meanings.map((meaningGroup, index) => (
-            <li key={index}>
-              {meaningGroup.map((meaning, subIndex) => (
-                <ul key={subIndex} className="list-disc list-inside">
-                  {meaning.map((definition, defIndex) => (
-                    <li key={defIndex}>{definition}</li>
-                  ))}
-                </ul>
-              ))}
-            </li>
-          ))}
-        </ul>
-    <div className="flex gap-4 flex-wrap">
-    <h1 className="text-neutral-500  " >{!typeOfWord?(''):("Synonyms")}</h1>
-          {synonym.map((synGroup, index) => (
-            <div key={index} className="flex gap-4 flex-wrap">
-              {synGroup.flat().map((syn, synIndex) => (
-                <span key={synIndex} className="text-purple-500">{syn}</span>
-              ))}
-            </div>
-          ))}
+
+      {error && (
+        <div className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-md">
+          {error}
+        </div>
+      )}
+
+      <div className="flex flex-col items-start w-full max-w-4xl mt-12">
+        <h1 className="text-4xl font-semibold text-black-500">{word}</h1>
+        <h2 className="text-stone-950 size-2.5 mt-2 ">{typeOfWord}</h2>
+        <div className="mt-4 w-full">
+          <h2 className="text-neutral-500 text-2xl">
+            {!typeOfWord ? "" : "Meanings"}
+          </h2>
+          <ul className="list-disc ml-3 marker:text-purple-500">
+            {meanings.map((meaning, index) => (
+              <li key={index} className="text-black">
+                {meaning}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="mt-4 w-full flex gap-3">
+          <h2 className="text-neutral-500">
+            {!typeOfWord ? "" : "Synonyms"}
+          </h2>
+          <div className="flex flex-wrap gap-4">
+            {synonym.map((syn, index) => (
+              <span key={index} className="text-purple-500">
+                {syn}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
     </div>
