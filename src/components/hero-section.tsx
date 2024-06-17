@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Search } from "lucide-react";
 import { useState } from "react";
+import { useTheme } from "next-themes";
 
 const FormSchema = z.object({
   input: z.string().min(2, {
@@ -60,6 +61,7 @@ export function HeroSection() {
   const [synonym, setSynonym] = useState<string[]>([]);
   const [meanings, setMeanings] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const { theme } = useTheme();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -69,6 +71,7 @@ export function HeroSection() {
   });
 
   const onSubmit = async (data: { input: string }) => {
+    setError(null); // Reset error before making a new request
     try {
       const res = await fetch(
         `https://api.dictionaryapi.dev/api/v2/entries/en/${data.input}`
@@ -89,7 +92,6 @@ export function HeroSection() {
         return;
       }
 
-      setError(null);
       const uniqueWords = Array.from(new Set(dataRes.map((x) => x.word)));
       const uniqueMeanings = Array.from(
         new Set(
@@ -126,7 +128,7 @@ export function HeroSection() {
     <div className="flex flex-col items-center min-h-screen px-4 py-12">
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="relative w-full max-w-lg"
+        className="relative w-full max-w-lg mb-8"
       >
         <div className="relative w-full">
           <input
@@ -152,14 +154,25 @@ export function HeroSection() {
 
       <div className="flex flex-col items-start w-full max-w-4xl mt-12">
         <h1 className="text-4xl font-semibold text-black-500">{word}</h1>
-        <h2 className="text-stone-950 size-2.5 mt-2 ">{typeOfWord}</h2>
+        <hr className="w-full border-gray-300 my-4" />
+        <div className="flex items-center mt-2">
+          <hr className="flex-grow border-gray-300 mr-4" />
+          <p className={`text-2xl ${theme === "dark" ? "text-white" : "text-black"}`}>
+            {typeOfWord}
+          </p>
+        </div>
         <div className="mt-4 w-full">
           <h2 className="text-neutral-500 text-2xl">
             {!typeOfWord ? "" : "Meanings"}
           </h2>
           <ul className="list-disc ml-3 marker:text-purple-500">
             {meanings.map((meaning, index) => (
-              <li key={index} className="text-black">
+              <li
+                key={index}
+                className={`${
+                  theme === "dark" ? "text-white" : "text-black"
+                }`}
+              >
                 {meaning}
               </li>
             ))}
