@@ -152,45 +152,53 @@ export function HeroSection() {
         </div>
       )}
 
-      <div className="flex flex-col items-start w-full max-w-4xl mt-12">
-        <h1 className="text-4xl font-semibold text-black-500">{word}</h1>
-        <hr className="w-full border-gray-300 my-4" />
-        <div className="flex items-center mt-2">
-          <hr className="flex-grow border-gray-300 mr-4" />
-          <p className={`text-2xl ${theme === "dark" ? "text-white" : "text-black"}`}>
-            {typeOfWord}
-          </p>
-        </div>
-        <div className="mt-4 w-full">
-          <h2 className="text-neutral-500 text-2xl">
-            {!typeOfWord ? "" : "Meanings"}
-          </h2>
-          <ul className="list-disc ml-3 marker:text-purple-500">
-            {meanings.map((meaning, index) => (
-              <li
-                key={index}
-                className={`${
+      {word && (
+        <>
+          <div className="flex flex-col items-start w-full max-w-4xl mt-12">
+            <h1 className="text-4xl font-semibold text-black-500">{word}</h1>
+            <div className="flex items-center mt-2">
+              <hr className="flex-grow border-gray-300 mr-4" />
+              <p
+                className={`text-2xl ${
                   theme === "dark" ? "text-white" : "text-black"
                 }`}
               >
-                {meaning}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="mt-4 w-full flex gap-3">
-          <h2 className="text-neutral-500">
-            {!typeOfWord ? "" : "Synonyms"}
-          </h2>
-          <div className="flex flex-wrap gap-4">
-            {synonym.map((syn, index) => (
-              <span key={index} className="text-purple-500">
-                {syn}
-              </span>
-            ))}
+                {typeOfWord}
+              </p>
+            </div>
+            <hr className="w-full border-gray-300 my-4" />
+            <div className="mt-4 w-full">
+              <h2 className="text-neutral-500 text-2xl">
+                {!typeOfWord ? "" : "Meanings"}
+              </h2>
+              <ul className="list-disc ml-3 marker:text-purple-500">
+                {meanings.map((meaning, index) => (
+                  <li
+                    key={index}
+                    className={`${
+                      theme === "dark" ? "text-white" : "text-black"
+                    }`}
+                  >
+                    {meaning}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="mt-4 w-full flex gap-3">
+              <h2 className="text-neutral-500">
+                {!typeOfWord ? "" : "Synonyms"}
+              </h2>
+              <div className="flex flex-wrap gap-4">
+                {synonym.map((syn, index) => (
+                  <span key={index} className="text-purple-500">
+                    {syn}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }
